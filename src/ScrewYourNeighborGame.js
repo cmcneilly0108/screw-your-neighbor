@@ -71,22 +71,8 @@ const ScrewYourNeighborGame = () => {
     }
     
     const nextPlayer = activePlayers[nextIndex];
-    setCurrentPlayer(nextPlayer.id);
     
-    // Save updated game state with new current player
-    const gameData = {
-      gameId: gameId,
-      players: players,
-      gameState: 'playing',
-      numPlayers: numPlayers,
-      hostId: players.find(p => p.isHost)?.id || 0,
-      currentPlayer: nextPlayer.id,
-      deck: deck,
-      revealCards: revealCards
-    };
-    saveGameState(gameData);
-    
-    // If next player should be skipped, auto-skip them
+    // If next player should be skipped, auto-skip them immediately
     if (shouldSkipPlayer(nextPlayer, players)) {
       const updatedPlayers = players.map(p => 
         p.id === nextPlayer.id ? { ...p, hasActed: true } : p
@@ -94,23 +80,38 @@ const ScrewYourNeighborGame = () => {
       setPlayers(updatedPlayers);
       
       // Save updated game state with skipped player
-      const skippedGameData = {
-        ...gameData,
-        players: updatedPlayers
+      const gameData = {
+        gameId: gameId,
+        players: updatedPlayers,
+        gameState: 'playing',
+        numPlayers: numPlayers,
+        hostId: players.find(p => p.isHost)?.id || 0,
+        currentPlayer: currentPlayer, // Keep current player the same until we find one who shouldn't be skipped
+        deck: deck,
+        revealCards: revealCards
       };
-      saveGameState(skippedGameData);
+      saveGameState(gameData);
       
-      // Continue to next player after a brief delay
+      // Continue to next player after a brief delay with the updated players
       setTimeout(() => {
-        setPlayers(current => {
-          const updated = current.map(p => 
-            p.id === nextPlayer.id ? { ...p, hasActed: true } : p
-          );
-          // Recursively process next player
-          setTimeout(processNextPlayer, 100);
-          return updated;
-        });
+        processNextPlayerWithUpdatedState(updatedPlayers);
       }, 800);
+    } else {
+      // Player can take their turn normally
+      setCurrentPlayer(nextPlayer.id);
+      
+      // Save updated game state with new current player
+      const gameData = {
+        gameId: gameId,
+        players: players,
+        gameState: 'playing',
+        numPlayers: numPlayers,
+        hostId: players.find(p => p.isHost)?.id || 0,
+        currentPlayer: nextPlayer.id,
+        deck: deck,
+        revealCards: revealCards
+      };
+      saveGameState(gameData);
     }
   };
 
@@ -289,9 +290,8 @@ const ScrewYourNeighborGame = () => {
     }
     
     const nextPlayer = activePlayers[nextIndex];
-    setCurrentPlayer(nextPlayer.id);
     
-    // If next player should be skipped, auto-skip them
+    // If next player should be skipped, auto-skip them immediately
     if (shouldSkipPlayer(nextPlayer, updatedPlayers)) {
       const newUpdatedPlayers = updatedPlayers.map(p => 
         p.id === nextPlayer.id ? { ...p, hasActed: true } : p
@@ -302,6 +302,22 @@ const ScrewYourNeighborGame = () => {
       setTimeout(() => {
         processNextPlayerWithUpdatedState(newUpdatedPlayers);
       }, 800);
+    } else {
+      // Player can take their turn normally
+      setCurrentPlayer(nextPlayer.id);
+      
+      // Save updated game state with new current player
+      const gameData = {
+        gameId: gameId,
+        players: updatedPlayers,
+        gameState: 'playing',
+        numPlayers: numPlayers,
+        hostId: updatedPlayers.find(p => p.isHost)?.id || 0,
+        currentPlayer: nextPlayer.id,
+        deck: deck,
+        revealCards: revealCards
+      };
+      saveGameState(gameData);
     }
   };
 
@@ -631,6 +647,38 @@ const ScrewYourNeighborGame = () => {
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
   }, [gameId]);
+
+  // Auto-skip players who should be skipped
+  useEffect(() => {
+    if (gameState !== 'playing' || !players.length || revealCards) return;
+    
+    const currentPlayerObj = players.find(p => p.id === currentPlayer);
+    if (currentPlayerObj && !currentPlayerObj.hasActed && shouldSkipPlayer(currentPlayerObj, players)) {
+      console.log('AUTO-SKIP: Player', currentPlayerObj.name, 'should be skipped, marking as acted');
+      const updatedPlayers = players.map(p => 
+        p.id === currentPlayer ? { ...p, hasActed: true } : p
+      );
+      setPlayers(updatedPlayers);
+      
+      // Save updated game state with skipped player
+      const gameData = {
+        gameId: gameId,
+        players: updatedPlayers,
+        gameState: 'playing',
+        numPlayers: numPlayers,
+        hostId: players.find(p => p.isHost)?.id || 0,
+        currentPlayer: currentPlayer,
+        deck: deck,
+        revealCards: revealCards
+      };
+      saveGameState(gameData);
+      
+      // Continue to next player after a brief delay
+      setTimeout(() => {
+        processNextPlayerWithUpdatedState(updatedPlayers);
+      }, 800);
+    }
+  }, [gameState, currentPlayer, players, revealCards, gameId, numPlayers, deck]);
 
   // Poll for game state changes to ensure synchronization
   useEffect(() => {
