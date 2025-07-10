@@ -1,0 +1,47 @@
+SCREW YOUR NEIGHBOR - REFACTORING PLAN
+==========================================
+
+Based on analysis of the 1,236-line monolithic ScrewYourNeighborGame.js file, here are the 5 biggest tasks for cleanup and improvement:
+
+## 1. **Extract Game Logic into Separate Modules**
+Break the massive component into focused modules:
+- **`/hooks/useGameState.js`** - All useState hooks and game state management
+- **`/hooks/useMultiplayer.js`** - localStorage/sessionStorage sync, polling, and player management
+- **`/services/gameLogic.js`** - Pure functions for game rules, card dealing, player turns
+- **`/services/cardUtils.js`** - Card creation, shuffling, rendering, and value calculations
+- **`/services/playerUtils.js`** - Player positioning, turn management, neighbor logic
+
+## 2. **Split UI Components into Atomic Components**
+Create reusable UI components:
+- **`/components/GameSetup.js`** - Setup screen with create/join forms
+- **`/components/WaitingRoom.js`** - Waiting room with player list
+- **`/components/GameTable.js`** - Main game table with players positioned around it
+- **`/components/PlayerCard.js`** - Individual player display with chips and cards
+- **`/components/GameControls.js`** - Turn controls (Keep/Exchange buttons)
+- **`/components/RoundResults.js`** - Round results display
+
+## 3. **Implement Proper State Management**
+Replace massive useState soup with structured approach:
+- **Use `useReducer`** for complex game state transitions
+- **Create action types** for all game events (DEAL_CARDS, PLAYER_ACTION, END_ROUND, etc.)
+- **Centralize state updates** to prevent inconsistencies
+- **Add state validation** to prevent invalid game states
+
+## 4. **Clean Up Multiplayer Synchronization**
+The current localStorage/sessionStorage approach is fragile:
+- **Extract sync logic** into a dedicated hook or service
+- **Implement proper conflict resolution** for simultaneous actions
+- **Add connection state management** (connected/disconnected players)
+- **Remove debug console.log statements** scattered throughout
+- **Simplify the complex polling logic** with cleaner state reconciliation
+
+## 5. **Remove Debug Code and Improve Error Handling**
+Clean up development artifacts:
+- **Remove all debug divs** showing internal state (lines 1024-1036, 1121-1124, etc.)
+- **Remove console.log statements** throughout the code
+- **Add proper error boundaries** and user-friendly error messages
+- **Implement input validation** for game creation/joining
+- **Add loading states** for async operations
+
+## IMPACT
+The refactoring would transform the current 1,236-line monolith into approximately 15-20 focused files, each with a single responsibility. This would dramatically improve maintainability, testability, and code reusability.

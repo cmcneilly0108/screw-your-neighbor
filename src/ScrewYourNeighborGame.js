@@ -331,7 +331,16 @@ const ScrewYourNeighborGame = () => {
     }
     
     const updatedPlayers = currentPlayers.map(player => {
-      if (player.eliminated) return player;
+      if (player.eliminated) {
+        // Ensure eliminated players have no cards
+        return {
+          ...player,
+          card: null,
+          cardRevealed: false,
+          hasKing: false,
+          hasActed: true
+        };
+      }
       
       const card = newDeck.pop();
       const hasKing = card.value === 'K';
@@ -351,13 +360,18 @@ const ScrewYourNeighborGame = () => {
     setRoundResult(null);
     
     // Find first active player to the left of dealer and start the turn sequence
-    const dealerIndex = currentPlayers.findIndex(p => p.isDealer);
-    let nextPlayerIndex = (dealerIndex + 1) % currentPlayers.length;
-    while (currentPlayers[nextPlayerIndex].eliminated) {
-      nextPlayerIndex = (nextPlayerIndex + 1) % currentPlayers.length;
+    const dealerIndex = activePlayers.findIndex(p => p.isDealer);
+    
+    if (dealerIndex === -1) {
+      console.log('ERROR: No dealer found among active players');
+      return;
     }
-    const nextPlayerId = currentPlayers[nextPlayerIndex].id;
-    console.log('DEAL: dealerIndex=', dealerIndex, 'nextPlayerIndex=', nextPlayerIndex, 'nextPlayerId=', nextPlayerId, 'dealer=', currentPlayers[dealerIndex].name, 'nextPlayer=', currentPlayers[nextPlayerIndex].name);
+    
+    // Next player is the one to the left of dealer (in active players order)
+    const nextPlayerIndex = (dealerIndex + 1) % activePlayers.length;
+    const nextPlayerId = activePlayers[nextPlayerIndex].id;
+    
+    console.log('DEAL: dealerIndex=', dealerIndex, 'nextPlayerIndex=', nextPlayerIndex, 'nextPlayerId=', nextPlayerId, 'dealer=', activePlayers[dealerIndex].name, 'nextPlayer=', activePlayers[nextPlayerIndex].name);
     setCurrentPlayer(nextPlayerId);
     
     // Save updated game state with new round data - use a slight delay to ensure state is set
@@ -488,7 +502,7 @@ const ScrewYourNeighborGame = () => {
     setRevealCards(true);
     window.roundEndTime = Date.now(); // Track when round ends to prevent polling from clearing revealCards
     
-    // Find lowest card value
+    // Find lowest card value - only consider active (non-eliminated) players
     const activePlayers = players.filter(p => !p.eliminated && p.card);
     console.log('END_ROUND: players=', players.length, 'activePlayers=', activePlayers.length);
     players.forEach(p => console.log('Player', p.name, 'eliminated:', p.eliminated, 'card:', p.card));
@@ -501,9 +515,9 @@ const ScrewYourNeighborGame = () => {
     const lowestValue = Math.min(...activePlayers.map(p => getCardValue(p.card)));
     const losers = activePlayers.filter(p => getCardValue(p.card) === lowestValue);
     
-    // Remove chips from losers
+    // Remove chips from losers (only active players can be losers)
     const updatedPlayers = players.map(player => {
-      if (losers.some(loser => loser.id === player.id)) {
+      if (!player.eliminated && losers.some(loser => loser.id === player.id)) {
         const newChips = player.chips - 1;
         return {
           ...player,
@@ -546,7 +560,19 @@ const ScrewYourNeighborGame = () => {
   const nextRound = () => {
     // Move dealer to next active player
     const activePlayers = players.filter(p => !p.eliminated);
-    const currentDealerIndex = activePlayers.findIndex(p => p.isDealer);
+    
+    if (activePlayers.length === 0) {
+      console.log('ERROR: No active players for next round');
+      return;
+    }
+    
+    let currentDealerIndex = activePlayers.findIndex(p => p.isDealer);
+    
+    // If no current dealer found among active players, start with first active player
+    if (currentDealerIndex === -1) {
+      currentDealerIndex = 0;
+    }
+    
     const nextDealerIndex = (currentDealerIndex + 1) % activePlayers.length;
     
     const updatedPlayers = players.map(player => ({
@@ -554,7 +580,14 @@ const ScrewYourNeighborGame = () => {
       isDealer: player.id === activePlayers[nextDealerIndex].id
     }));
     
-    console.log('NEXT_ROUND: Moving dealer from', activePlayers[currentDealerIndex].name, 'to', activePlayers[nextDealerIndex].name);
+    const currentDealer = activePlayers[currentDealerIndex];
+    const nextDealer = activePlayers[nextDealerIndex];
+    
+    console.log('NEXT_ROUND: Moving dealer from', 
+      currentDealer ? currentDealer.name : 'unknown', 
+      'to', 
+      nextDealer ? nextDealer.name : 'unknown'
+    );
     
     // Reset round state
     setRoundResult(null);
