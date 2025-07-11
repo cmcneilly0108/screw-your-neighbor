@@ -29,25 +29,25 @@ const loadFromLocalStorage = (gameId) => {
 
 // Save game state to Firebase or localStorage
 export const saveGameState = async (gameData) => {
-  console.log('Saving game state for gameId:', gameData.gameId);
+  // console.log('Saving game state for gameId:', gameData.gameId);
   
   if (!isFirebaseConfigured()) {
-    console.log('Firebase not configured, using localStorage');
+    // console.log('Firebase not configured, using localStorage');
     return saveToLocalStorage(gameData);
   }
   
   try {
-    console.log('Attempting to save to Firebase...');
+    // console.log('Attempting to save to Firebase...');
     const gameRef = ref(database, `games/${gameData.gameId}`);
     await set(gameRef, {
       ...gameData,
       lastUpdated: Date.now()
     });
-    console.log('Successfully saved to Firebase');
+    // console.log('Successfully saved to Firebase');
     return true;
   } catch (error) {
     console.error('Error saving game state to Firebase:', error);
-    console.log('Falling back to localStorage');
+    // console.log('Falling back to localStorage');
     // Fallback to localStorage
     return saveToLocalStorage(gameData);
   }

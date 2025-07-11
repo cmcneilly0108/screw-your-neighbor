@@ -4,14 +4,14 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
-console.log('React app starting...');
+// console.log('React app starting...');
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <App />
 );
 
-console.log('React app rendered');
+// console.log('React app rendered');
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))

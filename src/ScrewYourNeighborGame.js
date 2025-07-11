@@ -147,9 +147,9 @@ const ScrewYourNeighborGame = () => {
     if (!hostName.trim()) return;
     
     try {
-      console.log('Creating game...');
+      // console.log('Creating game...');
       const newGameId = Math.random().toString(36).substring(2, 8).toUpperCase();
-      console.log('Generated game ID:', newGameId);
+      // console.log('Generated game ID:', newGameId);
       
       setGameId(newGameId);
       setIsHost(true);
@@ -180,7 +180,7 @@ const ScrewYourNeighborGame = () => {
         hostId: 0
       };
       
-      console.log('Attempting to save game state...');
+      // console.log('Attempting to save game state...');
       const saveSuccess = await saveGameState(gameData);
       
       if (!saveSuccess) {
@@ -193,7 +193,7 @@ const ScrewYourNeighborGame = () => {
       sessionStorage.setItem(`myPlayerId_${newGameId}`, '0');
       sessionStorage.setItem(`myPlayerName_${newGameId}`, hostName);
       
-      console.log('Game created successfully!');
+      // console.log('Game created successfully!');
     } catch (error) {
       console.error('Error creating game:', error);
       alert('Failed to create game. Please check your internet connection and try again.');
@@ -709,7 +709,7 @@ const ScrewYourNeighborGame = () => {
           if (gameData && gameData.gameState !== 'setup') {
             // Sync game state changes
             if (gameData.gameState !== gameState) {
-              console.log('Game state changed from', gameState, 'to', gameData.gameState);
+              // console.log('Game state changed from', gameState, 'to', gameData.gameState);
               setGameState(gameData.gameState);
             }
             
@@ -723,10 +723,10 @@ const ScrewYourNeighborGame = () => {
                 });
               
               if (playersChanged) {
-                console.log('Players data changed, syncing:', gameData.players.length, 'players');
-                console.log('New players data:', gameData.players.map(p => ({ id: p.id, name: p.name, card: p.card?.value || 'none' })));
-                console.log('My current myPlayerId:', myPlayerId);
-                console.log('Current players state:', players.map(p => ({ id: p.id, name: p.name, card: p.card?.value || 'none' })));
+                // console.log('Players data changed, syncing:', gameData.players.length, 'players');
+                // console.log('New players data:', gameData.players.map(p => ({ id: p.id, name: p.name, card: p.card?.value || 'none' })));
+                // console.log('My current myPlayerId:', myPlayerId);
+                // console.log('Current players state:', players.map(p => ({ id: p.id, name: p.name, card: p.card?.value || 'none' })));
                 
                 // Force a completely new array with new object references to trigger React re-render
                 const newPlayers = gameData.players.map(p => ({ ...p }));
@@ -739,7 +739,7 @@ const ScrewYourNeighborGame = () => {
             
             // Sync other critical game data when transitioning to playing
             if (gameData.gameState === 'playing' && gameState !== 'playing') {
-              console.log('Syncing game transition to playing state');
+              // console.log('Syncing game transition to playing state');
               setDeck(gameData.deck || []);
               setCurrentPlayer(gameData.currentPlayer || 0);
               setRevealCards(gameData.revealCards || false);
@@ -749,9 +749,9 @@ const ScrewYourNeighborGame = () => {
               const savedPlayerId = sessionStorage.getItem(`myPlayerId_${gameId}`);
               if (savedPlayerId !== null) {
                 const targetId = parseInt(savedPlayerId);
-                console.log('Current myPlayerId:', myPlayerId, 'Saved myPlayerId:', targetId);
+                // console.log('Current myPlayerId:', myPlayerId, 'Saved myPlayerId:', targetId);
                 if (targetId !== myPlayerId) {
-                  console.log('Updating myPlayerId from', myPlayerId, 'to', targetId);
+                  // console.log('Updating myPlayerId from', myPlayerId, 'to', targetId);
                   setMyPlayerId(targetId);
                 }
               }
@@ -1049,8 +1049,8 @@ const ScrewYourNeighborGame = () => {
             </button>
           </div>
           
-          {/* Debug Panel */}
-          <div className="bg-yellow-100 p-3 mb-4 rounded border">
+          {/* Debug Panel - Commented out for production */}
+          {/* <div className="bg-yellow-100 p-3 mb-4 rounded border">
             <div className="text-sm">
               <strong>DEBUG:</strong> myPlayerId={myPlayerId}, players.length={players.length}
               <br />
@@ -1058,7 +1058,7 @@ const ScrewYourNeighborGame = () => {
               <br />
               <strong>My Player:</strong> {players.find(p => p.id === myPlayerId)?.name || 'not found'} - Card: {players.find(p => p.id === myPlayerId)?.card?.value || 'none'}
             </div>
-          </div>
+          </div> */}
           
           <div className="relative bg-green-600 rounded-full mx-auto mb-6" style={{ width: '600px', height: '400px' }}>
             {/* Card table surface */}
@@ -1132,10 +1132,10 @@ const ScrewYourNeighborGame = () => {
                             revealCards || player.cardRevealed || player.id === myPlayerId, 
                             true
                           )}
-                          {/* Debug info */}
-                          <div className="text-xs text-red-500 mt-1">
+                          {/* Debug info - Commented out for production */}
+                          {/* <div className="text-xs text-red-500 mt-1">
                             P{player.id}: card={player.card?.value}, myId={myPlayerId}, canSee={player.id === myPlayerId ? 'YES' : 'NO'}
-                          </div>
+                          </div> */}
                         </div>
                       )}
                       
