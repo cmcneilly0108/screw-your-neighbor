@@ -4,8 +4,14 @@ import { ref, set, get, onValue } from 'firebase/database';
 // Check if Firebase is properly configured
 const isFirebaseConfigured = () => {
   try {
-    return database && !database._delegate._repoInfo.host.includes('dummy');
+    // Simple check - if database exists and we can create a reference, Firebase is configured
+    if (!database) return false;
+    
+    // Try to create a test reference - this will work if Firebase is properly configured
+    const testRef = ref(database, 'test');
+    return testRef && testRef.toString().includes('screw-your-neighbor-game');
   } catch (error) {
+    console.error('Firebase configuration check failed:', error);
     return false;
   }
 };
@@ -23,19 +29,25 @@ const loadFromLocalStorage = (gameId) => {
 
 // Save game state to Firebase or localStorage
 export const saveGameState = async (gameData) => {
+  console.log('Saving game state for gameId:', gameData.gameId);
+  
   if (!isFirebaseConfigured()) {
+    console.log('Firebase not configured, using localStorage');
     return saveToLocalStorage(gameData);
   }
   
   try {
+    console.log('Attempting to save to Firebase...');
     const gameRef = ref(database, `games/${gameData.gameId}`);
     await set(gameRef, {
       ...gameData,
       lastUpdated: Date.now()
     });
+    console.log('Successfully saved to Firebase');
     return true;
   } catch (error) {
-    console.error('Error saving game state:', error);
+    console.error('Error saving game state to Firebase:', error);
+    console.log('Falling back to localStorage');
     // Fallback to localStorage
     return saveToLocalStorage(gameData);
   }

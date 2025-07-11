@@ -4,13 +4,13 @@ import { getDatabase } from 'firebase/database';
 // Your Firebase configuration
 // You'll need to replace these with your actual Firebase project config
 const firebaseConfig = {
-  apiKey: "AIzaSyDummy-Key-Replace-With-Your-Real-Key",
+  apiKey: "AIzaSyBVhmKU_uY2XzbjGfF9M6E0VoosVWDrQqw",
   authDomain: "screw-your-neighbor-game.firebaseapp.com",
-  databaseURL: "https://screw-your-neighbor-game-default-rtdb.firebaseio.com/",
+  databaseURL: "https://screw-your-neighbor-game-default-rtdb.firebaseio.com",
   projectId: "screw-your-neighbor-game",
-  storageBucket: "screw-your-neighbor-game.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "1:123456789:web:dummy-app-id"
+  storageBucket: "screw-your-neighbor-game.firebasestorage.app",
+  messagingSenderId: "798840749535",
+  appId: "1:798840749535:web:86bd3c434c3bedac1b186a"
 };
 
 // Initialize Firebase

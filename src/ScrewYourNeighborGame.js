@@ -146,42 +146,65 @@ const ScrewYourNeighborGame = () => {
   const createGame = async () => {
     if (!hostName.trim()) return;
     
-    const newGameId = Math.random().toString(36).substring(2, 8).toUpperCase();
-    setGameId(newGameId);
-    setIsHost(true);
-    
-    const hostPlayer = {
-      id: 0,
-      name: hostName.trim(),
-      chips: 3,
-      card: null,
-      isDealer: true,
-      cardRevealed: false,
-      hasKing: false,
-      eliminated: false,
-      isHost: true
-    };
-    
-    const newPlayers = [hostPlayer];
-    setPlayers(newPlayers);
-    setGameState('waiting');
-    setMyPlayerId(0); // Host is player 0
-    
-    // Save game state to localStorage
-    const gameData = {
-      gameId: newGameId,
-      players: newPlayers,
-      gameState: 'waiting',
-      numPlayers: numPlayers,
-      hostId: 0
-    };
-    await saveGameState(gameData);
-    
-    // Save myPlayerId to sessionStorage (unique per tab) instead of localStorage
-    const tabId = Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    sessionStorage.setItem(`myTabId_${newGameId}`, tabId);
-    sessionStorage.setItem(`myPlayerId_${newGameId}`, '0');
-    sessionStorage.setItem(`myPlayerName_${newGameId}`, hostName);
+    try {
+      console.log('Creating game...');
+      const newGameId = Math.random().toString(36).substring(2, 8).toUpperCase();
+      console.log('Generated game ID:', newGameId);
+      
+      setGameId(newGameId);
+      setIsHost(true);
+      
+      const hostPlayer = {
+        id: 0,
+        name: hostName.trim(),
+        chips: 3,
+        card: null,
+        isDealer: true,
+        cardRevealed: false,
+        hasKing: false,
+        eliminated: false,
+        isHost: true
+      };
+      
+      const newPlayers = [hostPlayer];
+      setPlayers(newPlayers);
+      setGameState('waiting');
+      setMyPlayerId(0); // Host is player 0
+      
+      // Save game state to Firebase
+      const gameData = {
+        gameId: newGameId,
+        players: newPlayers,
+        gameState: 'waiting',
+        numPlayers: numPlayers,
+        hostId: 0
+      };
+      
+      console.log('Attempting to save game state...');
+      const saveSuccess = await saveGameState(gameData);
+      
+      if (!saveSuccess) {
+        throw new Error('Failed to save game state');
+      }
+      
+      // Save myPlayerId to sessionStorage (unique per tab) instead of localStorage
+      const tabId = Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      sessionStorage.setItem(`myTabId_${newGameId}`, tabId);
+      sessionStorage.setItem(`myPlayerId_${newGameId}`, '0');
+      sessionStorage.setItem(`myPlayerName_${newGameId}`, hostName);
+      
+      console.log('Game created successfully!');
+    } catch (error) {
+      console.error('Error creating game:', error);
+      alert('Failed to create game. Please check your internet connection and try again.');
+      
+      // Reset state on error
+      setGameState('setup');
+      setGameId(null);
+      setPlayers([]);
+      setMyPlayerId(null);
+      setIsHost(false);
+    }
   };
 
   const joinGame = async () => {
@@ -678,9 +701,14 @@ const ScrewYourNeighborGame = () => {
   useEffect(() => {
     if (!gameId) return;
     
-    const pollGameState = () => {
-      const gameData = loadGameState(gameId);
+    const pollGameState = async () => {
+      const gameData = await loadGameState(gameId);
       if (gameData) {
+        // Don't sync during initial game creation (wait for game to be fully established)
+        if (gameState === 'setup') {
+          return;
+        }
+        
         // During active gameplay, only sync critical state, not player cards
         if (gameState === 'playing') {
           // Only update turn-related state during gameplay, but be careful about overriding fresh state
