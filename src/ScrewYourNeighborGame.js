@@ -165,7 +165,6 @@ const ScrewYourNeighborGame = () => {
     setPlayers(newPlayers);
     setGameState('waiting');
     setMyPlayerId(0); // Host is player 0
-    console.log('HOST: setMyPlayerId(0) called, hostName:', hostName);
     
     // Save game state to localStorage
     const gameData = {
@@ -182,7 +181,6 @@ const ScrewYourNeighborGame = () => {
     sessionStorage.setItem(`myTabId_${newGameId}`, tabId);
     sessionStorage.setItem(`myPlayerId_${newGameId}`, '0');
     sessionStorage.setItem(`myPlayerName_${newGameId}`, hostName);
-    console.log('HOST: Created game, set myPlayerId to 0 for gameId:', newGameId, 'player:', hostName, 'tabId:', tabId);
   };
 
   const joinGame = () => {
@@ -191,10 +189,6 @@ const ScrewYourNeighborGame = () => {
     // Load game state from localStorage
     const gameData = loadGameState(joinGameId.toUpperCase());
     
-    // Debug: Let's see what's in localStorage
-    console.log('Looking for game:', joinGameId.toUpperCase());
-    console.log('All localStorage keys:', Object.keys(localStorage).filter(k => k.startsWith('game_')));
-    console.log('Game data found:', gameData);
     
     if (!gameData) {
       alert(`Game ID not found. Please check the Game ID and try again.\nLooking for: ${joinGameId.toUpperCase()}`);
@@ -234,7 +228,6 @@ const ScrewYourNeighborGame = () => {
     setNumPlayers(gameData.numPlayers);
     setIsHost(false);
     setMyPlayerId(newPlayer.id); // Set this player's ID
-    console.log('GUEST: setMyPlayerId(' + newPlayer.id + ') called, playerName:', playerName);
     
     // Save updated game state
     const updatedGameData = {
@@ -248,7 +241,6 @@ const ScrewYourNeighborGame = () => {
     sessionStorage.setItem(`myTabId_${gameData.gameId}`, tabId);
     sessionStorage.setItem(`myPlayerId_${gameData.gameId}`, newPlayer.id.toString());
     sessionStorage.setItem(`myPlayerName_${gameData.gameId}`, playerName);
-    console.log('GUEST: Joined game, set myPlayerId to', newPlayer.id, 'for gameId:', gameData.gameId, 'player:', playerName, 'tabId:', tabId);
   };
 
   const startGame = () => {
@@ -363,7 +355,6 @@ const ScrewYourNeighborGame = () => {
     const dealerIndex = activePlayers.findIndex(p => p.isDealer);
     
     if (dealerIndex === -1) {
-      console.log('ERROR: No dealer found among active players');
       return;
     }
     
@@ -371,7 +362,6 @@ const ScrewYourNeighborGame = () => {
     const nextPlayerIndex = (dealerIndex + 1) % activePlayers.length;
     const nextPlayerId = activePlayers[nextPlayerIndex].id;
     
-    console.log('DEAL: dealerIndex=', dealerIndex, 'nextPlayerIndex=', nextPlayerIndex, 'nextPlayerId=', nextPlayerId, 'dealer=', activePlayers[dealerIndex].name, 'nextPlayer=', activePlayers[nextPlayerIndex].name);
     setCurrentPlayer(nextPlayerId);
     
     // Save updated game state with new round data - use a slight delay to ensure state is set
@@ -386,7 +376,6 @@ const ScrewYourNeighborGame = () => {
         deck: newDeck,
         revealCards: false
       };
-      console.log('DEAL: Saving game state with currentPlayer=', nextPlayerId);
       saveGameState(gameData);
     }, 100);
     
@@ -504,11 +493,8 @@ const ScrewYourNeighborGame = () => {
     
     // Find lowest card value - only consider active (non-eliminated) players
     const activePlayers = players.filter(p => !p.eliminated && p.card);
-    console.log('END_ROUND: players=', players.length, 'activePlayers=', activePlayers.length);
-    players.forEach(p => console.log('Player', p.name, 'eliminated:', p.eliminated, 'card:', p.card));
     
     if (activePlayers.length === 0) {
-      console.log('ERROR: No active players with cards found!');
       return;
     }
     
@@ -553,7 +539,6 @@ const ScrewYourNeighborGame = () => {
       deck: deck,
       revealCards: true
     };
-    console.log('END_ROUND: Saving game state with revealCards=true');
     saveGameState(gameData);
   };
 
@@ -562,7 +547,6 @@ const ScrewYourNeighborGame = () => {
     const activePlayers = players.filter(p => !p.eliminated);
     
     if (activePlayers.length === 0) {
-      console.log('ERROR: No active players for next round');
       return;
     }
     
@@ -580,14 +564,7 @@ const ScrewYourNeighborGame = () => {
       isDealer: player.id === activePlayers[nextDealerIndex].id
     }));
     
-    const currentDealer = activePlayers[currentDealerIndex];
-    const nextDealer = activePlayers[nextDealerIndex];
     
-    console.log('NEXT_ROUND: Moving dealer from', 
-      currentDealer ? currentDealer.name : 'unknown', 
-      'to', 
-      nextDealer ? nextDealer.name : 'unknown'
-    );
     
     // Reset round state
     setRoundResult(null);
@@ -632,21 +609,13 @@ const ScrewYourNeighborGame = () => {
     return gameData ? JSON.parse(gameData) : null;
   };
 
-  const checkGameStatus = () => {
-    // In a real multiplayer implementation, this would check server state
-    // For now, we'll simulate checking if there's an active game
-    return gameId && players.length > 0;
-  };
 
   // Load myPlayerId on component mount
   useEffect(() => {
     if (gameId) {
       const savedPlayerId = sessionStorage.getItem(`myPlayerId_${gameId}`);
-      const myPlayerName = sessionStorage.getItem(`myPlayerName_${gameId}`);
-      const myTabId = sessionStorage.getItem(`myTabId_${gameId}`);
       if (savedPlayerId !== null) {
         setMyPlayerId(parseInt(savedPlayerId));
-        console.log('MOUNT: Loaded myPlayerId', savedPlayerId, 'for gameId:', gameId, 'player:', myPlayerName, 'tabId:', myTabId);
       }
     }
   }, [gameId]);
@@ -687,7 +656,6 @@ const ScrewYourNeighborGame = () => {
     
     const currentPlayerObj = players.find(p => p.id === currentPlayer);
     if (currentPlayerObj && !currentPlayerObj.hasActed && shouldSkipPlayer(currentPlayerObj, players)) {
-      console.log('AUTO-SKIP: Player', currentPlayerObj.name, 'should be skipped, marking as acted');
       const updatedPlayers = players.map(p => 
         p.id === currentPlayer ? { ...p, hasActed: true } : p
       );
@@ -711,6 +679,7 @@ const ScrewYourNeighborGame = () => {
         processNextPlayerWithUpdatedState(updatedPlayers);
       }, 800);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState, currentPlayer, players, revealCards, gameId, numPlayers, deck]);
 
   // Poll for game state changes to ensure synchronization
@@ -724,16 +693,10 @@ const ScrewYourNeighborGame = () => {
         if (gameState === 'playing') {
           // Only update turn-related state during gameplay, but be careful about overriding fresh state
           if (gameData.currentPlayer !== undefined && gameData.currentPlayer !== currentPlayer) {
-            const currentPlayerName = players.find(p => p.id === currentPlayer)?.name || 'unknown';
-            const newPlayerName = players.find(p => p.id === gameData.currentPlayer)?.name || 'unknown';
-            
             // Don't override if we just set the currentPlayer locally (give it time to save)
             const timeSinceGameStart = Date.now() - (window.gameStartTime || 0);
             if (timeSinceGameStart > 3000) { // Only sync after 3 seconds
-              console.log('POLL: Updating currentPlayer from', currentPlayer, '(' + currentPlayerName + ') to', gameData.currentPlayer, '(' + newPlayerName + ')');
               setCurrentPlayer(gameData.currentPlayer);
-            } else {
-              console.log('POLL: Skipping currentPlayer update (too soon after game start)', timeSinceGameStart + 'ms');
             }
           }
           if (gameData.revealCards !== undefined && gameData.revealCards !== revealCards) {
@@ -741,11 +704,9 @@ const ScrewYourNeighborGame = () => {
             if (gameData.revealCards === false && revealCards === true) {
               const timeSinceRoundEnd = Date.now() - (window.roundEndTime || 0);
               if (timeSinceRoundEnd < 15000) { // Give 15 seconds to click Next Round
-                console.log('POLL: Skipping revealCards reset (too soon after round end)', timeSinceRoundEnd + 'ms');
                 return;
               }
             }
-            console.log('POLL: Updating revealCards from', revealCards, 'to', gameData.revealCards);
             setRevealCards(gameData.revealCards);
           }
           // Update hasActed status without overriding cards
@@ -755,7 +716,6 @@ const ScrewYourNeighborGame = () => {
               return gamePlayer && gamePlayer.hasActed !== p.hasActed;
             });
             if (hasActedChanged) {
-              console.log('POLL: Updating hasActed status');
               const updatedPlayers = players.map(p => {
                 const gamePlayer = gameData.players.find(gp => gp.id === p.id);
                 return gamePlayer ? { ...p, hasActed: gamePlayer.hasActed, chips: gamePlayer.chips, eliminated: gamePlayer.eliminated } : p;
@@ -775,11 +735,9 @@ const ScrewYourNeighborGame = () => {
         
         // Always ensure myPlayerId is correct
         const savedPlayerId = sessionStorage.getItem(`myPlayerId_${gameId}`);
-        const myPlayerName = sessionStorage.getItem(`myPlayerName_${gameId}`);
         if (savedPlayerId !== null) {
           const targetId = parseInt(savedPlayerId);
           if (targetId !== myPlayerId) {
-            console.log('POLL: Restoring myPlayerId from', myPlayerId, 'to', targetId, 'for player', myPlayerName);
             setMyPlayerId(targetId);
           }
         }
@@ -1054,19 +1012,6 @@ const ScrewYourNeighborGame = () => {
     <div className="min-h-screen bg-green-800 p-4">
       <div className="max-w-6xl mx-auto">
         <div className="bg-white rounded-lg shadow-xl p-6 mb-6">
-          {/* Debug info at top */}
-          <div className="bg-red-100 p-2 mb-4 rounded text-xs">
-            <strong>DEBUG:</strong> gameState={gameState}, currentPlayer={currentPlayer}, myPlayerId={myPlayerId}, 
-            players={players.length}, currentPlayerObj={currentPlayerObj ? currentPlayerObj.name : 'null'}
-            <br />
-            <strong>SessionStorage:</strong> myTabId_{gameId} = {sessionStorage.getItem(`myTabId_${gameId}`)}, 
-            myPlayerId_{gameId} = {sessionStorage.getItem(`myPlayerId_${gameId}`)}, 
-            myPlayerName_{gameId} = {sessionStorage.getItem(`myPlayerName_${gameId}`)}
-            <br />
-            <strong>Players:</strong> {players.map(p => `${p.name}(id:${p.id})`).join(', ')}
-            <br />
-            <strong>Card visibility check:</strong> myPlayerId={myPlayerId}, players with cards: {players.filter(p => p.card).map(p => `${p.name}(id:${p.id},canSee:${p.id === myPlayerId})`).join(', ')}
-          </div>
           
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-2xl font-bold text-green-800">Screw Your Neighbor</h1>
@@ -1151,10 +1096,6 @@ const ScrewYourNeighborGame = () => {
                             revealCards || player.cardRevealed || player.id === myPlayerId, 
                             true
                           )}
-                          {/* Debug info */}
-                          <div className="text-xs text-red-500 mt-1">
-                            P{player.id}: revealed={revealCards ? 'T' : 'F'}, cardRevealed={player.cardRevealed ? 'T' : 'F'}, isMe={player.id === myPlayerId ? 'T' : 'F'}
-                          </div>
                         </div>
                       )}
                       
@@ -1174,10 +1115,6 @@ const ScrewYourNeighborGame = () => {
                 <h3 className="font-semibold text-lg">
                   {currentPlayerObj.name}'s Turn
                 </h3>
-                {/* Debug info */}
-                <div className="text-xs text-red-500 mt-1">
-                  DEBUG: currentPlayer={currentPlayer}, myPlayerId={myPlayerId}, shouldShowControls={shouldShowControls ? 'true' : 'false'}
-                </div>
                 <p className="text-sm text-gray-600">
                   {currentPlayerObj.isDealer 
                     ? 'Exchange with deck or keep your card'
@@ -1239,10 +1176,6 @@ const ScrewYourNeighborGame = () => {
             </div>
           )}
           
-          {/* Debug info for next round button */}
-          <div className="text-xs text-red-500 mb-2">
-            DEBUG NEXT ROUND: revealCards={revealCards ? 'T' : 'F'}, winner={winner ? winner : 'null'}, isHost={isHost ? 'T' : 'F'}
-          </div>
           
           {revealCards && !winner && (
             <div className="text-center">
