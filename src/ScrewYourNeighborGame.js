@@ -726,6 +726,17 @@ const ScrewYourNeighborGame = () => {
               setCurrentPlayer(gameData.currentPlayer || 0);
               setRevealCards(gameData.revealCards || false);
               setNumPlayers(gameData.numPlayers || 4);
+              
+              // Ensure myPlayerId is correct
+              const savedPlayerId = sessionStorage.getItem(`myPlayerId_${gameId}`);
+              if (savedPlayerId !== null) {
+                const targetId = parseInt(savedPlayerId);
+                console.log('Current myPlayerId:', myPlayerId, 'Saved myPlayerId:', targetId);
+                if (targetId !== myPlayerId) {
+                  console.log('Updating myPlayerId from', myPlayerId, 'to', targetId);
+                  setMyPlayerId(targetId);
+                }
+              }
             }
           }
         } catch (error) {
@@ -1092,6 +1103,10 @@ const ScrewYourNeighborGame = () => {
                             revealCards || player.cardRevealed || player.id === myPlayerId, 
                             true
                           )}
+                          {/* Debug info */}
+                          <div className="text-xs text-red-500 mt-1">
+                            P{player.id}: card={player.card?.value}, myId={myPlayerId}, canSee={player.id === myPlayerId ? 'YES' : 'NO'}
+                          </div>
                         </div>
                       )}
                       
