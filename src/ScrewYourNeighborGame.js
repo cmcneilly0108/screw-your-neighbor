@@ -725,8 +725,15 @@ const ScrewYourNeighborGame = () => {
               if (playersChanged) {
                 console.log('Players data changed, syncing:', gameData.players.length, 'players');
                 console.log('New players data:', gameData.players.map(p => ({ id: p.id, name: p.name, card: p.card?.value || 'none' })));
-                // Force a new array reference to trigger React re-render
-                setPlayers([...gameData.players]);
+                console.log('My current myPlayerId:', myPlayerId);
+                console.log('Current players state:', players.map(p => ({ id: p.id, name: p.name, card: p.card?.value || 'none' })));
+                
+                // Force a completely new array with new object references to trigger React re-render
+                const newPlayers = gameData.players.map(p => ({ ...p }));
+                setPlayers(newPlayers);
+                
+                // Also force a state update to trigger re-render
+                setGameState(gameData.gameState);
               }
             }
             
@@ -1040,6 +1047,17 @@ const ScrewYourNeighborGame = () => {
               <RotateCcw size={16} />
               New Game
             </button>
+          </div>
+          
+          {/* Debug Panel */}
+          <div className="bg-yellow-100 p-3 mb-4 rounded border">
+            <div className="text-sm">
+              <strong>DEBUG:</strong> myPlayerId={myPlayerId}, players.length={players.length}
+              <br />
+              <strong>Players:</strong> {players.map(p => `${p.name}(id:${p.id}, card:${p.card?.value || 'none'})`).join(', ')}
+              <br />
+              <strong>My Player:</strong> {players.find(p => p.id === myPlayerId)?.name || 'not found'} - Card: {players.find(p => p.id === myPlayerId)?.card?.value || 'none'}
+            </div>
           </div>
           
           <div className="relative bg-green-600 rounded-full mx-auto mb-6" style={{ width: '600px', height: '400px' }}>
