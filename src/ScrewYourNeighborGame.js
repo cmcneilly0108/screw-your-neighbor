@@ -713,10 +713,21 @@ const ScrewYourNeighborGame = () => {
               setGameState(gameData.gameState);
             }
             
-            // Sync players
-            if (gameData.players && gameData.players.length !== players.length) {
-              console.log('Players changed:', gameData.players.length, 'players');
-              setPlayers(gameData.players);
+            // Sync players (always sync if gameData has players to ensure cards are updated)
+            if (gameData.players) {
+              // Check if players data has changed (length or cards)
+              const playersChanged = gameData.players.length !== players.length ||
+                gameData.players.some(gp => {
+                  const localPlayer = players.find(p => p.id === gp.id);
+                  return !localPlayer || localPlayer.card !== gp.card || localPlayer.chips !== gp.chips;
+                });
+              
+              if (playersChanged) {
+                console.log('Players data changed, syncing:', gameData.players.length, 'players');
+                console.log('New players data:', gameData.players.map(p => ({ id: p.id, name: p.name, card: p.card?.value || 'none' })));
+                // Force a new array reference to trigger React re-render
+                setPlayers([...gameData.players]);
+              }
             }
             
             // Sync other critical game data when transitioning to playing
@@ -1059,7 +1070,7 @@ const ScrewYourNeighborGame = () => {
               
               return (
                 <div
-                  key={player.id}
+                  key={`${player.id}-${player.card?.value || 'no-card'}-${player.chips}`}
                   className="absolute transform -translate-x-1/2 -translate-y-1/2"
                   style={{
                     left: `${position.x}%`,
