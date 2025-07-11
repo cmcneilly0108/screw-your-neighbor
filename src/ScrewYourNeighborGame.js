@@ -699,73 +699,36 @@ const ScrewYourNeighborGame = () => {
 
   // Poll for game state changes to ensure synchronization
   useEffect(() => {
-    if (!gameId) return;
+    if (!gameId || gameState === 'setup') return;
     
-    const pollGameState = async () => {
-      const gameData = await loadGameState(gameId);
-      if (gameData) {
-        // Don't sync during initial game creation (wait for game to be fully established)
-        if (gameState === 'setup') {
-          return;
-        }
-        
-        // During active gameplay, only sync critical state, not player cards
-        if (gameState === 'playing') {
-          // Only update turn-related state during gameplay, but be careful about overriding fresh state
-          if (gameData.currentPlayer !== undefined && gameData.currentPlayer !== currentPlayer) {
-            // Don't override if we just set the currentPlayer locally (give it time to save)
-            const timeSinceGameStart = Date.now() - (window.gameStartTime || 0);
-            if (timeSinceGameStart > 3000) { // Only sync after 3 seconds
-              setCurrentPlayer(gameData.currentPlayer);
-            }
-          }
-          if (gameData.revealCards !== undefined && gameData.revealCards !== revealCards) {
-            // Don't reset revealCards back to false if we just revealed them (give time for user to click Next Round)
-            if (gameData.revealCards === false && revealCards === true) {
-              const timeSinceRoundEnd = Date.now() - (window.roundEndTime || 0);
-              if (timeSinceRoundEnd < 15000) { // Give 15 seconds to click Next Round
-                return;
+    // Add a delay before starting polling to let the initial state settle
+    const startPolling = setTimeout(() => {
+      const pollGameState = async () => {
+        try {
+          const gameData = await loadGameState(gameId);
+          if (gameData && gameData.gameState !== 'setup') {
+            // Only sync specific states to avoid conflicts
+            if (gameData.gameState === 'waiting' && gameState === 'waiting') {
+              // Sync players for waiting room
+              if (gameData.players && gameData.players.length !== players.length) {
+                setPlayers(gameData.players);
               }
             }
-            setRevealCards(gameData.revealCards);
           }
-          // Update hasActed status without overriding cards
-          if (gameData.players && players.length > 0) {
-            const hasActedChanged = players.some(p => {
-              const gamePlayer = gameData.players.find(gp => gp.id === p.id);
-              return gamePlayer && gamePlayer.hasActed !== p.hasActed;
-            });
-            if (hasActedChanged) {
-              const updatedPlayers = players.map(p => {
-                const gamePlayer = gameData.players.find(gp => gp.id === p.id);
-                return gamePlayer ? { ...p, hasActed: gamePlayer.hasActed, chips: gamePlayer.chips, eliminated: gamePlayer.eliminated } : p;
-              });
-              setPlayers(updatedPlayers);
-            }
-          }
-        } else {
-          // Before gameplay, sync everything (for joining players, etc.)
-          setPlayers(gameData.players || []);
-          setGameState(gameData.gameState || 'setup');
-          setNumPlayers(gameData.numPlayers || 4);
-          if (gameData.currentPlayer !== undefined) {
-            setCurrentPlayer(gameData.currentPlayer);
-          }
+        } catch (error) {
+          console.error('Error polling game state:', error);
         }
-        
-        // Always ensure myPlayerId is correct
-        const savedPlayerId = sessionStorage.getItem(`myPlayerId_${gameId}`);
-        if (savedPlayerId !== null) {
-          const targetId = parseInt(savedPlayerId);
-          if (targetId !== myPlayerId) {
-            setMyPlayerId(targetId);
-          }
-        }
-      }
-    };
+      };
+      
+      const interval = setInterval(pollGameState, 2000);
+      
+      // Store interval reference to clear it later
+      return interval;
+    }, 3000); // 3 second delay before starting polling
     
-    const interval = setInterval(pollGameState, 2000);
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(startPolling);
+    };
   }, [gameId, gameState, currentPlayer, revealCards, players, myPlayerId]);
 
   const renderCard = (card, isRevealed, isSmall = false) => {
