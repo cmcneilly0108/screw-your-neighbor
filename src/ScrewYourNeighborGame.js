@@ -707,12 +707,25 @@ const ScrewYourNeighborGame = () => {
         try {
           const gameData = await loadGameState(gameId);
           if (gameData && gameData.gameState !== 'setup') {
-            // Only sync specific states to avoid conflicts
-            if (gameData.gameState === 'waiting' && gameState === 'waiting') {
-              // Sync players for waiting room
-              if (gameData.players && gameData.players.length !== players.length) {
-                setPlayers(gameData.players);
-              }
+            // Sync game state changes
+            if (gameData.gameState !== gameState) {
+              console.log('Game state changed from', gameState, 'to', gameData.gameState);
+              setGameState(gameData.gameState);
+            }
+            
+            // Sync players
+            if (gameData.players && gameData.players.length !== players.length) {
+              console.log('Players changed:', gameData.players.length, 'players');
+              setPlayers(gameData.players);
+            }
+            
+            // Sync other critical game data when transitioning to playing
+            if (gameData.gameState === 'playing' && gameState !== 'playing') {
+              console.log('Syncing game transition to playing state');
+              setDeck(gameData.deck || []);
+              setCurrentPlayer(gameData.currentPlayer || 0);
+              setRevealCards(gameData.revealCards || false);
+              setNumPlayers(gameData.numPlayers || 4);
             }
           }
         } catch (error) {
