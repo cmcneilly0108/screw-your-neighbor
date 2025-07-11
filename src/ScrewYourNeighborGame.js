@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Shuffle, RotateCcw } from 'lucide-react';
+import { saveGameState, loadGameState } from './services/gameService';
 
 const ScrewYourNeighborGame = () => {
   const [gameState, setGameState] = useState('setup');
@@ -142,7 +143,7 @@ const ScrewYourNeighborGame = () => {
     return shuffled;
   };
 
-  const createGame = () => {
+  const createGame = async () => {
     if (!hostName.trim()) return;
     
     const newGameId = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -174,7 +175,7 @@ const ScrewYourNeighborGame = () => {
       numPlayers: numPlayers,
       hostId: 0
     };
-    saveGameState(gameData);
+    await saveGameState(gameData);
     
     // Save myPlayerId to sessionStorage (unique per tab) instead of localStorage
     const tabId = Date.now() + '_' + Math.random().toString(36).substr(2, 9);
@@ -183,12 +184,11 @@ const ScrewYourNeighborGame = () => {
     sessionStorage.setItem(`myPlayerName_${newGameId}`, hostName);
   };
 
-  const joinGame = () => {
+  const joinGame = async () => {
     if (!playerName.trim() || !joinGameId.trim()) return;
     
-    // Load game state from localStorage
-    const gameData = loadGameState(joinGameId.toUpperCase());
-    
+    // Load game state from Firebase
+    const gameData = await loadGameState(joinGameId.toUpperCase());
     
     if (!gameData) {
       alert(`Game ID not found. Please check the Game ID and try again.\nLooking for: ${joinGameId.toUpperCase()}`);
@@ -234,7 +234,7 @@ const ScrewYourNeighborGame = () => {
       ...gameData,
       players: updatedPlayers
     };
-    saveGameState(updatedGameData);
+    await saveGameState(updatedGameData);
     
     // Save myPlayerId to sessionStorage (unique per tab) instead of localStorage
     const tabId = Date.now() + '_' + Math.random().toString(36).substr(2, 9);
@@ -575,8 +575,9 @@ const ScrewYourNeighborGame = () => {
   };
 
   const resetGame = () => {
-    // Clear localStorage if we have a gameId
+    // Clear game data if we have a gameId
     if (gameId) {
+      // Clear localStorage (fallback storage)
       localStorage.removeItem(`game_${gameId}`);
       // Clear sessionStorage for this tab
       sessionStorage.removeItem(`myTabId_${gameId}`);
@@ -599,15 +600,6 @@ const ScrewYourNeighborGame = () => {
     setMyPlayerId(null);
   };
 
-  // localStorage functions for game state persistence
-  const saveGameState = (gameData) => {
-    localStorage.setItem(`game_${gameData.gameId}`, JSON.stringify(gameData));
-  };
-
-  const loadGameState = (gameId) => {
-    const gameData = localStorage.getItem(`game_${gameId}`);
-    return gameData ? JSON.parse(gameData) : null;
-  };
 
 
   // Load myPlayerId on component mount
