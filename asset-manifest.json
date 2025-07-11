@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/screw-your-neighbor/static/css/main.9bdd8f69.css",
-    "main.js": "/screw-your-neighbor/static/js/main.a9a235c3.js",
+    "main.js": "/screw-your-neighbor/static/js/main.75db8a73.js",
     "static/js/453.edf49e55.chunk.js": "/screw-your-neighbor/static/js/453.edf49e55.chunk.js",
     "index.html": "/screw-your-neighbor/index.html",
     "main.9bdd8f69.css.map": "/screw-your-neighbor/static/css/main.9bdd8f69.css.map",
-    "main.a9a235c3.js.map": "/screw-your-neighbor/static/js/main.a9a235c3.js.map",
+    "main.75db8a73.js.map": "/screw-your-neighbor/static/js/main.75db8a73.js.map",
     "453.edf49e55.chunk.js.map": "/screw-your-neighbor/static/js/453.edf49e55.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.9bdd8f69.css",
-    "static/js/main.a9a235c3.js"
+    "static/js/main.75db8a73.js"
   ]
 }
