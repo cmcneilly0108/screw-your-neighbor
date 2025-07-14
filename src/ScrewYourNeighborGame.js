@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Shuffle, RotateCcw } from 'lucide-react';
 import { saveGameState, loadGameState } from './services/gameService';
+import { addActivityEntry, subscribeToActivityLog } from './services/activityLogService';
 
 const ScrewYourNeighborGame = () => {
   const [gameState, setGameState] = useState('setup');
@@ -18,6 +19,7 @@ const ScrewYourNeighborGame = () => {
   const [joinGameId, setJoinGameId] = useState('');
   const [showJoinForm, setShowJoinForm] = useState(false);
   const [myPlayerId, setMyPlayerId] = useState(null);
+  const [activityLog, setActivityLog] = useState([]);
 
   // Card suits and values
   const suits = ['♠', '♥', '♦', '♣'];
@@ -270,6 +272,7 @@ const ScrewYourNeighborGame = () => {
     if (players.length < 2) return;
     
     setGameState('playing');
+    logActivity(`🎮 Game started with ${players.length} players!`, 'system');
     window.gameStartTime = Date.now(); // Track when game starts to prevent polling conflicts
     dealNewRound(players);
     
@@ -435,6 +438,8 @@ const ScrewYourNeighborGame = () => {
     updatedPlayers[currentPlayerIndex].hasActed = true;
     setPlayers(updatedPlayers);
     
+    logActivity('🤝 kept their card');
+    
     // Save updated game state
     const gameData = {
       gameId: gameId,
@@ -465,6 +470,7 @@ const ScrewYourNeighborGame = () => {
       currentPlayerObj.cardRevealed = newCard.value === 'K';
       currentPlayerObj.hasKing = newCard.value === 'K';
       setDeck(newDeck);
+      logActivity('🔄 exchanged with the deck');
     } else {
       // Exchange with left neighbor
       const leftNeighbor = getLeftNeighbor(updatedPlayers, currentPlayer);
@@ -479,6 +485,8 @@ const ScrewYourNeighborGame = () => {
         currentPlayerObj.hasKing = currentPlayerObj.card.value === 'K';
         leftNeighbor.cardRevealed = leftNeighbor.card.value === 'K';
         leftNeighbor.hasKing = leftNeighbor.card.value === 'K';
+        
+        logActivity(`🔄 exchanged cards with ${leftNeighbor.name}`);
       }
     }
     
@@ -544,11 +552,21 @@ const ScrewYourNeighborGame = () => {
       eliminatedPlayers: losers.filter(p => p.chips === 1).map(p => p.name)
     });
     
+    // Log round results
+    const loserNames = losers.map(p => p.name).join(', ');
+    logActivity(`📉 Round ended! Lowest card: ${lowestValue}. ${loserNames} lost a chip.`, 'round');
+    
+    const eliminatedNames = losers.filter(p => p.chips === 1).map(p => p.name);
+    if (eliminatedNames.length > 0) {
+      logActivity(`💀 ${eliminatedNames.join(', ')} eliminated!`, 'system');
+    }
+    
     // Check for winner
     const remainingPlayers = updatedPlayers.filter(p => !p.eliminated && p.chips > 0);
     if (remainingPlayers.length === 1) {
       setWinner(remainingPlayers[0].name);
       setGameState('gameOver');
+      logActivity(`🏆 ${remainingPlayers[0].name} wins the game!`, 'system');
     }
     
     // Save updated game state with revealed cards
@@ -587,7 +605,7 @@ const ScrewYourNeighborGame = () => {
       isDealer: player.id === activePlayers[nextDealerIndex].id
     }));
     
-    
+    logActivity(`🃏 New round started! ${activePlayers[nextDealerIndex].name} is now the dealer.`, 'system');
     
     // Reset round state
     setRoundResult(null);
@@ -621,6 +639,7 @@ const ScrewYourNeighborGame = () => {
     setJoinGameId('');
     setShowJoinForm(false);
     setMyPlayerId(null);
+    setActivityLog([]);
   };
 
 
@@ -772,6 +791,28 @@ const ScrewYourNeighborGame = () => {
       clearTimeout(startPolling);
     };
   }, [gameId, gameState, currentPlayer, revealCards, players, myPlayerId]);
+
+  // Subscribe to activity log updates
+  useEffect(() => {
+    if (!gameId) {
+      setActivityLog([]);
+      return;
+    }
+
+    const unsubscribe = subscribeToActivityLog(gameId, (entries) => {
+      setActivityLog(entries);
+    });
+
+    return unsubscribe;
+  }, [gameId]);
+
+  // Helper function to add activity log entries
+  const logActivity = (action, type = 'action') => {
+    if (gameId && myPlayerId !== null) {
+      const playerName = players.find(p => p.id === myPlayerId)?.name || 'Unknown Player';
+      addActivityEntry(gameId, myPlayerId, playerName, action, type);
+    }
+  };
 
   const renderCard = (card, isRevealed, isSmall = false) => {
     if (!card) return null;
@@ -1035,8 +1076,11 @@ const ScrewYourNeighborGame = () => {
 
   return (
     <div className="min-h-screen bg-green-800 p-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="bg-white rounded-lg shadow-xl p-6 mb-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex gap-4">
+          {/* Main game area */}
+          <div className="flex-1">
+            <div className="bg-white rounded-lg shadow-xl p-6 mb-6">
           
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-2xl font-bold text-green-800">Screw Your Neighbor</h1>
@@ -1233,6 +1277,33 @@ const ScrewYourNeighborGame = () => {
               )}
             </div>
           )}
+            </div>
+          </div>
+          
+          {/* Activity Log Panel */}
+          <div className="w-80">
+            <div className="bg-white rounded-lg shadow-xl p-4 sticky top-4">
+              <h3 className="text-lg font-bold text-green-800 mb-4 flex items-center gap-2">
+                📋 Activity Log
+              </h3>
+              <div className="h-96 overflow-y-auto space-y-2">
+                {activityLog.length === 0 ? (
+                  <div className="text-gray-500 text-sm text-center py-8">
+                    No activity yet...
+                  </div>
+                ) : (
+                  activityLog.map((entry) => (
+                    <div key={entry.id} className="bg-gray-50 p-2 rounded text-sm">
+                      <div className="text-gray-600 text-xs mb-1">{entry.displayTime}</div>
+                      <div className="text-gray-800">
+                        <span className="font-medium">{entry.playerName}</span> {entry.action}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
