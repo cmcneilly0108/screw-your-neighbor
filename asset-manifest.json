@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/screw-your-neighbor/static/css/main.c9168f31.css",
-    "main.js": "/screw-your-neighbor/static/js/main.94326fe8.js",
+    "main.css": "/screw-your-neighbor/static/css/main.e8ef3599.css",
+    "main.js": "/screw-your-neighbor/static/js/main.b0721c6e.js",
     "static/js/453.edf49e55.chunk.js": "/screw-your-neighbor/static/js/453.edf49e55.chunk.js",
     "index.html": "/screw-your-neighbor/index.html",
-    "main.c9168f31.css.map": "/screw-your-neighbor/static/css/main.c9168f31.css.map",
-    "main.94326fe8.js.map": "/screw-your-neighbor/static/js/main.94326fe8.js.map",
+    "main.e8ef3599.css.map": "/screw-your-neighbor/static/css/main.e8ef3599.css.map",
+    "main.b0721c6e.js.map": "/screw-your-neighbor/static/js/main.b0721c6e.js.map",
     "453.edf49e55.chunk.js.map": "/screw-your-neighbor/static/js/453.edf49e55.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.c9168f31.css",
-    "static/js/main.94326fe8.js"
+    "static/css/main.e8ef3599.css",
+    "static/js/main.b0721c6e.js"
   ]
 }
