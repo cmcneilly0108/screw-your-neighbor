@@ -20,6 +20,7 @@ const ScrewYourNeighborGame = () => {
   const [showJoinForm, setShowJoinForm] = useState(false);
   const [myPlayerId, setMyPlayerId] = useState(null);
   const [activityLog, setActivityLog] = useState([]);
+  const [activityLogError, setActivityLogError] = useState(null);
 
   // Card suits and values
   const suits = ['♠', '♥', '♦', '♣'];
@@ -640,6 +641,7 @@ const ScrewYourNeighborGame = () => {
     setShowJoinForm(false);
     setMyPlayerId(null);
     setActivityLog([]);
+    setActivityLogError(null);
   };
 
 
@@ -796,21 +798,39 @@ const ScrewYourNeighborGame = () => {
   useEffect(() => {
     if (!gameId) {
       setActivityLog([]);
+      setActivityLogError(null);
       return;
     }
 
+    console.log(`🎮 Setting up activity log subscription for gameId: ${gameId}`);
+    setActivityLogError(null);
+
     const unsubscribe = subscribeToActivityLog(gameId, (entries) => {
+      console.log(`🎮 Received activity log update with ${entries.length} entries`);
       setActivityLog(entries);
+      setActivityLogError(null);
     });
+
+    // Test the subscription by trying to detect errors
+    setTimeout(() => {
+      if (activityLog.length === 0) {
+        console.log(`🎮 No activity log entries received after 3 seconds - might be a connection issue`);
+      }
+    }, 3000);
 
     return unsubscribe;
   }, [gameId]);
 
   // Helper function to add activity log entries
   const logActivity = (action, type = 'action') => {
+    console.log(`🎮 logActivity called:`, { action, type, gameId, myPlayerId });
+    
     if (gameId && myPlayerId !== null) {
       const playerName = players.find(p => p.id === myPlayerId)?.name || 'Unknown Player';
+      console.log(`🎮 Calling addActivityEntry with playerName:`, playerName);
       addActivityEntry(gameId, myPlayerId, playerName, action, type);
+    } else {
+      console.log(`🎮 logActivity skipped - gameId:`, gameId, `myPlayerId:`, myPlayerId);
     }
   };
 
@@ -1287,9 +1307,21 @@ const ScrewYourNeighborGame = () => {
                 📋 Activity Log
               </h3>
               <div className="h-96 overflow-y-auto space-y-2">
+                {activityLogError && (
+                  <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded text-sm mb-2">
+                    Connection error: {activityLogError}
+                  </div>
+                )}
+                
+                {gameId && (
+                  <div className="text-xs text-gray-400 mb-2">
+                    Connected to: {gameId}
+                  </div>
+                )}
+                
                 {activityLog.length === 0 ? (
                   <div className="text-gray-500 text-sm text-center py-8">
-                    No activity yet...
+                    {gameId ? 'Waiting for activity...' : 'No game active'}
                   </div>
                 ) : (
                   activityLog.map((entry) => (
