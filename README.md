@@ -1,70 +1,95 @@
-# Getting Started with Create React App
+# Screw Your Neighbor 🃏
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A multiplayer card game where players try to avoid having the lowest card each round. The last player with chips wins!
 
-## Available Scripts
+## 🎮 How to Play
 
-In the project directory, you can run:
+### Game Setup
+- 2-6 players can join a game
+- Each player starts with 3 chips
+- One player creates a game and shares the 6-character game ID
+- Other players join using the game ID
 
-### `npm start`
+### Basic Rules
+1. **Each round**, every player is dealt one card
+2. **Goal**: Don't have the lowest card value when cards are revealed
+3. **Card Values**: Ace = 1 (lowest), 2-10 = face value, J = 11, Q = 12, K = 13 (highest)
+4. **Losing**: Players with the lowest card(s) lose one chip
+5. **Elimination**: When you lose your last chip, you're out
+6. **Winner**: Last player with chips remaining wins!
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### Turn Sequence
+Players take turns in order, starting to the left of the dealer:
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+**Your Turn Options:**
+- **Keep Card**: Keep your current card (end your turn)
+- **Exchange Card**: Swap cards with your left neighbor OR the deck (if you're the dealer)
 
-### `npm test`
+**Special Rules:**
+- **Kings are revealed immediately** and cannot be exchanged
+- **You cannot exchange with a neighbor who has a King** (their King protects them)
+- **The dealer** exchanges with the deck instead of a neighbor
+- **Auto-skip**: Players with Kings or blocked by Kings skip their turn automatically
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Round End
+- After all players have acted, cards are revealed
+- Players with the lowest card value lose one chip
+- **Ties**: All tied players lose a chip
+- Players with 0 chips are eliminated
+- The dealer role moves to the next player for the next round
 
-### `npm run build`
+### Winning
+- **Single Winner**: Last player with chips wins
+- **Tie Game**: If all remaining players are eliminated in the same round
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## 🚀 Getting Started
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Play Online
+Visit the deployed game at: [Game URL]
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Run Locally
+1. Clone this repository
+2. Install dependencies: `npm install`
+3. Start the development server: `npm start`
+4. Open [http://localhost:3000](http://localhost:3000)
 
-### `npm run eject`
+### Multiplayer Setup
+For full multiplayer functionality, you'll need to configure Firebase:
+1. See `FIREBASE_SETUP.md` for detailed setup instructions
+2. The game works offline with localStorage as a fallback
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## 🎯 Strategy Tips
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+- **Early rounds**: Consider exchanging to avoid very low cards (Aces, 2s, 3s)
+- **Late rounds**: Be more cautious - other players may have higher cards
+- **Watch for Kings**: Pay attention to revealed Kings to know your exchange options
+- **Dealer advantage**: Dealers can't get stuck with a neighbor's bad card
+- **Chip management**: Sometimes it's worth taking a risk when you have multiple chips
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## 🔧 Development
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### Available Scripts
+- `npm start` - Start development server
+- `npm run build` - Build for production
+- `npm test` - Run tests
+- `npm run deploy` - Deploy to GitHub Pages
 
-## Learn More
+### Tech Stack
+- **Frontend**: React with Tailwind CSS
+- **Backend**: Firebase (Realtime Database + Firestore)
+- **Deployment**: GitHub Pages
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## 📝 Game Variations
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+This implementation follows the classic "Screw Your Neighbor" rules. Some variations include:
+- Different starting chip counts
+- Multiple rounds of exchanges per turn
+- Different card values or deck modifications
 
-### Code Splitting
+## 🤝 Contributing
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+Feel free to submit issues or pull requests to improve the game!
 
-### Analyzing the Bundle Size
+## 📄 License
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+This project is open source and available under the [MIT License](LICENSE).
