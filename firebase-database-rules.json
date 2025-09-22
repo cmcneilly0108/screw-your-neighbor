@@ -1,0 +1,32 @@
+{
+  "rules": {
+    "games": {
+      "$gameId": {
+        ".read": "true",
+        ".write": "true",
+        ".validate": "newData.hasChildren(['gameId', 'players', 'gameState'])",
+        "gameId": {
+          ".validate": "newData.isString() && newData.val().length >= 4 && newData.val().length <= 10"
+        },
+        "players": {
+          "$playerId": {
+            "name": {
+              ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 100"
+            },
+            "chips": {
+              ".validate": "newData.isNumber() && newData.val() >= 0"
+            }
+          }
+        },
+        "gameState": {
+          ".validate": "newData.isString()"
+        },
+        "lastUpdated": {
+          ".validate": "newData.isNumber()"
+        }
+      }
+    },
+    ".read": "false",
+    ".write": "false"
+  }
+}
